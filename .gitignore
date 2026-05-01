@@ -4,3 +4,6 @@ out
 .idea
 .vs
 .vscode
+_deps
+*.pdb
+CMake Commands
