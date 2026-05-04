@@ -1,10 +1,13 @@
-#include <complex>
 #include <SFML/Graphics.hpp>
+#include <SFML/Window/Keyboard.hpp>
 
 #include "Utility/Utility.h"
 
 #define WIDTH 800
 #define HEIGHT 800
+
+
+
 
 void UpdateSprite(sf::Sprite& sprite, sf::Texture& texture, uint8_t * buffer);
 
@@ -12,6 +15,7 @@ void update_pixmap(double x_start, double x_stop, double y_start, double y_stop,
                    uint8_t* buffer, uint32_t bytes_per_row, double* x_l,
                    double* y_l);
 
+bool fConvergeColorBlack = false;
 
 int main()
 {
@@ -67,6 +71,7 @@ int main()
 
     UpdateSprite(sprite, texture, buffer);
 
+	
     while (window.isOpen())
     {
         while (const std::optional event = window.pollEvent())
@@ -104,6 +109,14 @@ int main()
  				redraw = 1;
                 break;
             }
+			else if (const auto* keyPress = event->getIf<sf::Event::KeyPressed>())
+			{
+				if(keyPress->code == sf::Keyboard::Key::Space)
+				{
+					fConvergeColorBlack = !fConvergeColorBlack;
+ 					redraw = 1;					
+				}
+			}
         }
        
 		if (redraw) 
@@ -160,13 +173,16 @@ void update_pixmap(double x_start, double x_stop, double y_start, double y_stop,
 	{
 		y_l[i] = y_l[i - 1] + y_step;
 	}
- 
+
 	for (uint32_t y = 0; y < HEIGHT; y++) 
 	{
 		for (uint32_t x = 0; x < WIDTH; x++) 
 		{
-			std::complex<double> c(x_l[x], y_l[y]);
-			std::complex<double>  z = 0;
+	
+			double cr = x_l[x];
+			double ci = y_l[y];
+			double zr = 0;
+			double zi = 0;
  
 			uint32_t offset = x * 4 + y * bytes_per_row;
  
@@ -174,12 +190,14 @@ void update_pixmap(double x_start, double x_stop, double y_start, double y_stop,
             double mg = 0.0;
 			buffer[offset + 0] = buffer[offset + 1] = buffer[offset + 2] = 0;
 			buffer[offset + 2] = 128;
-			while (i < 25/*50*/)
+			while (i < 50)
             {
-				z = z * z + c;
-				double img = z.imag();
-				double real = z.real();                
-				/*double*/mg = real * real + img * img;
+				double new_zr = ((zr * zr) - (zi*zi)) + cr;
+				double new_zi = (2.0 * zr * zi) + ci;
+				zr = new_zr;
+				zi = new_zi;
+
+				mg =(zr * zr) + (zi * zi);
 				if (mg > 4.0)
 				{
 					int k = (int)(mg * 100);
@@ -188,22 +206,25 @@ void update_pixmap(double x_start, double x_stop, double y_start, double y_stop,
 					buffer[offset + 2] = (i * 3 * 2) % 255;
 					break;
 				}
-/*				
-                else if (mg < 0.5) 
-                {
-                    int k = (int)(mg * 100);
-                    buffer[offset + 0] = (k * i * 2) % 255;
-                    buffer[offset + 1] = (k * i * 2) % 255;
-                    buffer[offset + 2] = (k * i * 9) % 255;
-                }                
-                else if (mg < 1) 
-                {
-                    int k = (int)(mg * 100);
-                    buffer[offset + 0] = (k * i * 8) % 255;
-                    buffer[offset + 1] = (k * i * 2) % 255;
-                    buffer[offset + 2] = (k * i * 8) % 255;
-                }
-  */              
+				
+				if(fConvergeColorBlack == false)
+				{
+
+					if (mg < 1) 
+					{
+						int k = (int)(mg * 100);
+						buffer[offset + 0] = (k * i * 8) % 255;
+						buffer[offset + 1] = (k * i * 2) % 255;
+						buffer[offset + 2] = (k * i * 8) % 255;
+					}
+					if (mg < 0.5) 
+					{
+						int k = (int)(mg * 100);
+						buffer[offset + 0] = (k * i * 2) % 255;
+						buffer[offset + 1] = (k * i * 2) % 255;
+						buffer[offset + 2] = (k * i * 9) % 255;
+					}                
+				}
     			i++;                
             }                
 
