@@ -555,14 +555,15 @@ void update_pixmap_newton(double x_start, double x_stop, double y_start, double 
 			else if(nRoot == 1)
 			{
 				buffer[offset + 0] = 0;
-				buffer[offset + 1] = 255 - (i * 25);
-				buffer[offset + 2] = 0;
+				buffer[offset + 1] = 0;
+				buffer[offset + 2] = 255 - (i * 25);				
+
 			}
 			else if(nRoot == 2)
 			{
 				buffer[offset + 0] = 0;
-				buffer[offset + 1] = 0;
-				buffer[offset + 2] = 255 - (i * 25);
+				buffer[offset + 1] = 255 - (i * 25);				
+				buffer[offset + 2] = 0;
 			}
 			else
 			{
