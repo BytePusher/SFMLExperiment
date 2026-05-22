@@ -49,7 +49,7 @@ fractal_type  cur_fractal_type = fractal_type::fractal_mandelbrot;
 double julia_cr_init[] = {-0.70176, -0.8,   0.285, -0.12256, -0.4, -1.476, -0.03051, -0.2667, -0.40193, -0.57976, -0.38506};
 double julia_ci_init[] = {-0.3842,   0.156, 0.01,   0.74486,  0.6,  0.0,   -0.65586, -0.65024, 0.67769, -0.61587, -0.6385};
 int  nJuliaInitIndex = 0;
-
+int  nNewtonIndex = 0;
 bool fBurningShipMandelbrot = false;
 
 int main()
@@ -182,7 +182,11 @@ int main()
 				{
 					if(cur_fractal_type == fractal_type::fractal_newton)
 					{
-						// Do nothing (for now)
+						nNewtonIndex++;
+						if(nNewtonIndex > 4)
+						{
+							nNewtonIndex = 0;
+						}
 					}
 					else
 					{
@@ -545,32 +549,153 @@ void update_pixmap_newton(double x_start, double x_stop, double y_start, double 
 				}
     			i++;                
             }                
-			
-			if(nRoot == 0)
-			{
-				buffer[offset + 0] = 255 - (i * 25);
-				buffer[offset + 1] = 0;
-				buffer[offset + 2] = 0;
-			}
-			else if(nRoot == 1)
-			{
-				buffer[offset + 0] = 0;
-				buffer[offset + 1] = 0;
-				buffer[offset + 2] = 255 - (i * 25);				
 
-			}
-			else if(nRoot == 2)
+			if(nNewtonIndex == 0)
 			{
-				buffer[offset + 0] = 0;
-				buffer[offset + 1] = 255 - (i * 25);				
-				buffer[offset + 2] = 0;
+				if(nRoot == 0)
+				{
+					buffer[offset + 0] = 255 - (i * 25);
+					buffer[offset + 1] = 0;
+					buffer[offset + 2] = 0;
+				}
+				else if(nRoot == 1)
+				{
+					buffer[offset + 0] = 0;
+					buffer[offset + 1] = 0;
+					buffer[offset + 2] = 255 - (i * 25);				
+
+				}
+				else if(nRoot == 2)
+				{
+					buffer[offset + 0] = 0;
+					buffer[offset + 1] = 255 - (i * 25);				
+					buffer[offset + 2] = 0;
+				}
+				else
+				{
+					buffer[offset + 0] = 0;
+					buffer[offset + 1] = 0;
+					buffer[offset + 2] = 0;
+				}
 			}
 			else
 			{
-				buffer[offset + 0] = 0;
-				buffer[offset + 1] = 0;
-				buffer[offset + 2] = 0;
-			}
+				uint8_t  clr = 255 - (i * 25);
+
+				if(nNewtonIndex == 1)
+				{
+					if(nRoot == 0)
+					{
+						buffer[offset + 0] = clr;
+						buffer[offset + 1] = 0;
+						buffer[offset + 2] = clr;
+					}
+					else if(nRoot == 1)
+					{
+						buffer[offset + 0] = clr / 2;
+						buffer[offset + 1] = 0;
+						buffer[offset + 2] = clr / 2;				
+
+					}
+					else if(nRoot == 2)
+					{
+						buffer[offset + 0] = clr / 4;
+						buffer[offset + 1] = 0;				
+						buffer[offset + 2] = clr / 4;
+					}
+					else
+					{
+						buffer[offset + 0] = 0;
+						buffer[offset + 1] = 0;
+						buffer[offset + 2] = 0;
+					}
+				}
+				else if(nNewtonIndex == 2)
+				{
+					if(nRoot == 0)
+					{
+						buffer[offset + 0] = clr;
+						buffer[offset + 1] = clr;
+						buffer[offset + 2] = 0;
+					}
+					else if(nRoot == 1)
+					{
+						buffer[offset + 0] = clr / 2;
+						buffer[offset + 1] = clr / 2;
+						buffer[offset + 2] = 0;				
+
+					}
+					else if(nRoot == 2)
+					{
+						buffer[offset + 0] = clr / 4;
+						buffer[offset + 1] = clr / 4;				
+						buffer[offset + 2] = 0;
+					}
+					else
+					{
+						buffer[offset + 0] = 0;
+						buffer[offset + 1] = 0;
+						buffer[offset + 2] = 0;
+					}
+				}
+				else if(nNewtonIndex == 3)
+				{
+					if(nRoot == 0)
+					{
+						buffer[offset + 0] = 0;
+						buffer[offset + 1] = clr;
+						buffer[offset + 2] = clr;
+					}
+					else if(nRoot == 1)
+					{
+						buffer[offset + 0] = 0;
+						buffer[offset + 1] = clr / 2;
+						buffer[offset + 2] = clr / 2;				
+
+					}
+					else if(nRoot == 2)
+					{
+						buffer[offset + 0] = 0;
+						buffer[offset + 1] = clr / 4;				
+						buffer[offset + 2] = clr / 4;
+					}
+					else
+					{
+						buffer[offset + 0] = 0;
+						buffer[offset + 1] = 0;
+						buffer[offset + 2] = 0;
+					}
+				}
+				else if(nNewtonIndex == 4)
+				{
+					if(nRoot == 0)
+					{
+						buffer[offset + 0] = clr;
+						buffer[offset + 1] = clr;
+						buffer[offset + 2] = clr;
+					}
+					else if(nRoot == 1)
+					{
+						buffer[offset + 0] = clr / 2;
+						buffer[offset + 1] = clr / 2;
+						buffer[offset + 2] = clr / 2;				
+
+					}
+					else if(nRoot == 2)
+					{
+						buffer[offset + 0] = clr / 4;
+						buffer[offset + 1] = clr / 4;				
+						buffer[offset + 2] = clr / 4;
+					}
+					else
+					{
+						buffer[offset + 0] = 0;
+						buffer[offset + 1] = 0;
+						buffer[offset + 2] = 0;
+					}
+				}
+
+			}			
 		}
 	}
 }
