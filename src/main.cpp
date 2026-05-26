@@ -32,7 +32,8 @@ void update_pixmap_newton(double x_start, double x_stop, double y_start, double 
                    uint8_t* buffer, uint32_t bytes_per_row, double* x_l,
                    double* y_l);				   
 				   
-bool fConvergeColorBlack = false;
+bool fMandelJuliaConvergeColorBlack = false;
+bool fNewtonNotPerRoot = false;
 
 enum class fractal_type {fractal_mandelbrot, fractal_julia, fractal_newton};
 
@@ -147,9 +148,18 @@ int main()
 			{
 				if(keyPress->code == sf::Keyboard::Key::Space)
 				{
-					fConvergeColorBlack = !fConvergeColorBlack;
- 					redraw = 1;					
+					if(cur_fractal_type == fractal_type::fractal_mandelbrot || cur_fractal_type == fractal_type::fractal_julia)
+					{
+							fMandelJuliaConvergeColorBlack = !fMandelJuliaConvergeColorBlack;
+							redraw = 1;					
+					}					
+					else if(cur_fractal_type == fractal_type::fractal_newton)
+					{
+							fNewtonNotPerRoot = !fNewtonNotPerRoot;
+							redraw = 1;					
+					}					
 				}
+
 				if(keyPress->code == sf::Keyboard::Key::J)
 				{
 					if(cur_fractal_type == fractal_type::fractal_julia)
@@ -274,7 +284,7 @@ void update_pixmap(double x_start, double x_stop, double y_start, double y_stop,
 		update_pixmap_mandelbrot(x_start, x_stop, y_start, y_stop,
                                  buffer, bytes_per_row, x_l, y_l); 
 	}
-	if(cur_fractal_type == fractal_type::fractal_newton)
+	else if(cur_fractal_type == fractal_type::fractal_newton)
 	{
 		update_pixmap_newton(x_start, x_stop, y_start, y_stop,
                                  buffer, bytes_per_row, x_l, y_l); 							
@@ -339,7 +349,7 @@ void update_pixmap_mandelbrot(double x_start, double x_stop, double y_start, dou
 					break;
 				}
 				
-				if(fConvergeColorBlack == false)
+				if(fMandelJuliaConvergeColorBlack == false)
 				{
 					if (mg < 1) 
 					{
@@ -432,7 +442,7 @@ void update_pixmap_julia(double x_start, double x_stop, double y_start, double y
 					break;
 				}
 				
-				if(fConvergeColorBlack == false)
+				if(fMandelJuliaConvergeColorBlack == false)
 				{
 
 					if (mg < 1) 
@@ -552,7 +562,7 @@ void update_pixmap_newton(double x_start, double x_stop, double y_start, double 
 
 			if(nNewtonIndex == 0)
 			{
-				if(nRoot == 0)
+				if(nRoot == 0 || fNewtonNotPerRoot)
 				{
 					buffer[offset + 0] = 255 - (i * 25);
 					buffer[offset + 1] = 0;
@@ -584,7 +594,7 @@ void update_pixmap_newton(double x_start, double x_stop, double y_start, double 
 
 				if(nNewtonIndex == 1)
 				{
-					if(nRoot == 0)
+					if(nRoot == 0 || fNewtonNotPerRoot)
 					{
 						buffer[offset + 0] = clr;
 						buffer[offset + 1] = 0;
@@ -612,7 +622,7 @@ void update_pixmap_newton(double x_start, double x_stop, double y_start, double 
 				}
 				else if(nNewtonIndex == 2)
 				{
-					if(nRoot == 0)
+					if(nRoot == 0 || fNewtonNotPerRoot)
 					{
 						buffer[offset + 0] = clr;
 						buffer[offset + 1] = clr;
@@ -640,7 +650,7 @@ void update_pixmap_newton(double x_start, double x_stop, double y_start, double 
 				}
 				else if(nNewtonIndex == 3)
 				{
-					if(nRoot == 0)
+					if(nRoot == 0 || fNewtonNotPerRoot)
 					{
 						buffer[offset + 0] = 0;
 						buffer[offset + 1] = clr;
@@ -668,7 +678,7 @@ void update_pixmap_newton(double x_start, double x_stop, double y_start, double 
 				}
 				else if(nNewtonIndex == 4)
 				{
-					if(nRoot == 0)
+					if(nRoot == 0 || fNewtonNotPerRoot)
 					{
 						buffer[offset + 0] = clr;
 						buffer[offset + 1] = clr;
