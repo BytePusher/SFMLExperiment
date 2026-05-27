@@ -32,7 +32,9 @@ void update_pixmap_julia(double x_start, double x_stop, double y_start, double y
 void update_pixmap_newton(double x_start, double x_stop, double y_start, double y_stop,
                    uint8_t* buffer, uint32_t bytes_per_row, double* x_l,
                    double* y_l);				   
-				   
+
+void SetWindowTitle(std::string_view strTitle);
+
 bool fMandelJuliaConvergeColorBlack = false;
 bool fNewtonNotPerRoot = false;
 bool fNewtonFactor = true;
@@ -75,6 +77,9 @@ int  nNewtonIndex = 0;
 int  nNewtonFactorIndex = 0;
 bool fBurningShipMandelbrot = false;
 
+
+sf::RenderWindow * pWindow = NULL;
+
 int main()
 {
     uint32_t bytes_per_row = WIDTH * 4;
@@ -87,8 +92,10 @@ int main()
 		return 0;
 	}
 
-    auto window = sf::RenderWindow(sf::VideoMode({WIDTH, HEIGHT}), "CMake SFML Project");
+    auto window = sf::RenderWindow(sf::VideoMode({WIDTH, HEIGHT}), "Fractal");
     window.setFramerateLimit(144);
+
+	pWindow = &window;
 
     sf::Image image(sf::Vector2u(WIDTH, HEIGHT), sf::Color::Red);
     sf::Texture texture;
@@ -96,7 +103,7 @@ int main()
     sf::Sprite sprite(texture);
 
  	double x_start = -2;
-double x_stop = 1;
+	double x_stop = 1;
  
 	double y_start = -1.5;
 	double y_stop = 2;
@@ -177,11 +184,21 @@ double x_stop = 1;
 					}					
 					else if(cur_fractal_type == fractal_type::fractal_newton)
 					{
+						if(keyPress->shift)
+						{
 							fNewtonNotPerRoot = !fNewtonNotPerRoot;
-							redraw = 1;					
+						}
+						else
+						{
+							nNewtonIndex++;
+							if(nNewtonIndex > 4)
+							{
+								nNewtonIndex = 0;
+							}
+						}
+						redraw = 1;					
 					}					
 				}
-
 				if(keyPress->code == sf::Keyboard::Key::J)
 				{
 					if(cur_fractal_type == fractal_type::fractal_julia)
@@ -214,27 +231,15 @@ double x_stop = 1;
 				{
 					if(cur_fractal_type == fractal_type::fractal_newton)
 					{
-						nNewtonIndex++;
-						if(nNewtonIndex > 4)
-						{
-							nNewtonIndex = 0;
-						}
-					}
-					else
-					{
-						cur_fractal_type = fractal_type::fractal_newton;
-					}
- 					redraw = 1;					
-				}
-				else if(keyPress->code == sf::Keyboard::Key::F)
-				{
-					if(cur_fractal_type == fractal_type::fractal_newton)
-					{
 						nNewtonFactorIndex++;
 						if(nNewtonFactorIndex >= sizeof newton_r_factor / sizeof newton_r_factor[0])
 						{
 							nNewtonFactorIndex = 0;
 						}
+					}
+					else
+					{
+						cur_fractal_type = fractal_type::fractal_newton;
 					}
  					redraw = 1;					
 				}
@@ -312,16 +317,19 @@ void update_pixmap(double x_start, double x_stop, double y_start, double y_stop,
 	{
 		update_pixmap_julia(x_start, x_stop, y_start, y_stop,
                             buffer, bytes_per_row, x_l, y_l); 
+		SetWindowTitle("Julia Set");
 	}
    else if(cur_fractal_type == fractal_type::fractal_mandelbrot)
    {
 		update_pixmap_mandelbrot(x_start, x_stop, y_start, y_stop,
                                  buffer, bytes_per_row, x_l, y_l); 
+		SetWindowTitle("MandelBrot Set");								 
 	}
 	else if(cur_fractal_type == fractal_type::fractal_newton)
 	{
 		update_pixmap_newton(x_start, x_stop, y_start, y_stop,
                                  buffer, bytes_per_row, x_l, y_l); 							
+		SetWindowTitle("Newton");								 
 	}
 
 }
@@ -478,7 +486,6 @@ void update_pixmap_julia(double x_start, double x_stop, double y_start, double y
 				
 				if(fMandelJuliaConvergeColorBlack == false)
 				{
-
 					if (mg < 1) 
 					{
 						int k = (int)(mg * 100);
@@ -541,7 +548,6 @@ void update_pixmap_newton(double x_start, double x_stop, double y_start, double 
 	double newton_root_r[] = {1.0, -0.5,            -0.5 };
 	double newton_root_i[] = {0.0, half_root_three, -half_root_three };
 
-std::cout << "[" << nNewtonFactorIndex << "]" << "(" <<	newton_r_factor[nNewtonFactorIndex] << "," <<  newton_i_factor[nNewtonFactorIndex] << ")" << std::endl;
 	for (uint32_t y = 0; y < HEIGHT; y++) 
 	{
 		for (uint32_t x = 0; x < WIDTH; x++) 
@@ -757,6 +763,15 @@ void UpdateSprite(sf::Sprite& sprite, sf::Texture& texture, uint8_t * buffer)
     sprite.setPosition({0.f, 0.f});        
 }
 
+void SetWindowTitle(std::string_view strTitle)
+{
+	if(pWindow)
+	{
+		std::string str = "Fractal: ";
+		str += strTitle;
+		pWindow->setTitle(str.c_str());
+	}
+}
 
 void complex_squared( double r_in, double i_in, double * r_out, double * i_out )
 {
