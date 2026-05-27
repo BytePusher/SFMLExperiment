@@ -10,6 +10,7 @@
 void complex_squared( double r_in, double i_in, double * r_out, double * i_out );
 void complex_cubed( double r_in, double i_in, double * r_out, double * i_out );
 void complex_divide( double r_num, double i_num, double r_den, double i_den, double * r_out, double * i_out );
+void complex_multiply( double r1, double i1, double r2, double i2, double * r_out, double * i_out );
 double complex_diff_squared(double r1, double i1, double r2, double i2);
 
 void set_initial_values(double * px_start, double * px_stop, double * py_start, double * py_stop);
@@ -34,6 +35,7 @@ void update_pixmap_newton(double x_start, double x_stop, double y_start, double 
 				   
 bool fMandelJuliaConvergeColorBlack = false;
 bool fNewtonNotPerRoot = false;
+bool fNewtonFactor = true;
 
 enum class fractal_type {fractal_mandelbrot, fractal_julia, fractal_newton};
 
@@ -49,8 +51,28 @@ fractal_type  cur_fractal_type = fractal_type::fractal_mandelbrot;
 
 double julia_cr_init[] = {-0.70176, -0.8,   0.285, -0.12256, -0.4, -1.476, -0.03051, -0.2667, -0.40193, -0.57976, -0.38506};
 double julia_ci_init[] = {-0.3842,   0.156, 0.01,   0.74486,  0.6,  0.0,   -0.65586, -0.65024, 0.67769, -0.61587, -0.6385};
+ 
+double newton_r_factor[] = {1.0, 0.4, 1.1  };
+double newton_i_factor[] = {0.0, 0.5, 0.75 };
+
+
+  // std::complex<double> alpha( 1.0,  0.0);
+  // std::complex<double> alpha( 2.0,  0.0);
+  // std::complex<double> alpha( 2.2,  0.0);
+  // std::complex<double> alpha( 2.5,  0.0);
+  // std::complex<double> alpha( 2.9,  0.0);
+  // std::complex<double> alpha(-0.5,  0.0);
+  // std::complex<double> alpha(-0.1, -0.1);
+  // std::complex<double> alpha(-0.1,  0.0);
+  // std::complex<double> alpha(-0.1,  0.1);
+  // std::complex<double> alpha(-0.1,  0.2);
+  // std::complex<double> alpha(-0.1,  1.5);
+  // std::complex<double> alpha(0.4,   0.5);
+  //std::complex<double> alpha(1.1,    0.75);
+
 int  nJuliaInitIndex = 0;
 int  nNewtonIndex = 0;
+int  nNewtonFactorIndex = 0;
 bool fBurningShipMandelbrot = false;
 
 int main()
@@ -74,7 +96,7 @@ int main()
     sf::Sprite sprite(texture);
 
  	double x_start = -2;
-	double x_stop = 1;
+double x_stop = 1;
  
 	double y_start = -1.5;
 	double y_stop = 2;
@@ -201,6 +223,18 @@ int main()
 					else
 					{
 						cur_fractal_type = fractal_type::fractal_newton;
+					}
+ 					redraw = 1;					
+				}
+				else if(keyPress->code == sf::Keyboard::Key::F)
+				{
+					if(cur_fractal_type == fractal_type::fractal_newton)
+					{
+						nNewtonFactorIndex++;
+						if(nNewtonFactorIndex >= sizeof newton_r_factor / sizeof newton_r_factor[0])
+						{
+							nNewtonFactorIndex = 0;
+						}
 					}
  					redraw = 1;					
 				}
@@ -507,6 +541,7 @@ void update_pixmap_newton(double x_start, double x_stop, double y_start, double 
 	double newton_root_r[] = {1.0, -0.5,            -0.5 };
 	double newton_root_i[] = {0.0, half_root_three, -half_root_three };
 
+std::cout << "[" << nNewtonFactorIndex << "]" << "(" <<	newton_r_factor[nNewtonFactorIndex] << "," <<  newton_i_factor[nNewtonFactorIndex] << ")" << std::endl;
 	for (uint32_t y = 0; y < HEIGHT; y++) 
 	{
 		for (uint32_t x = 0; x < WIDTH; x++) 
@@ -525,7 +560,7 @@ void update_pixmap_newton(double x_start, double x_stop, double y_start, double 
 
 			int nRoot = -1;
 
-			while (i < 15)
+			while (i < 255)
             {
 				double cubed_r;
 				double cubed_i;
@@ -537,16 +572,19 @@ void update_pixmap_newton(double x_start, double x_stop, double y_start, double 
 				double den_i;	
 				double quot_r;
 				double quot_i;			
+				double fact_quot_r;
+				double fact_quot_i;				
 
 				complex_cubed(zr, zi, &cubed_r, &cubed_i);
 				complex_squared(zr, zi, &squared_r, &squared_i);
 				complex_divide(cubed_r - 1.0, cubed_i, 3.0 * squared_r, 3.0 * squared_i, &quot_r, &quot_i);
-				zr = zr - quot_r;
-				zi = zi - quot_i;
+				complex_multiply(quot_r, quot_i, newton_r_factor[nNewtonFactorIndex], newton_i_factor[nNewtonFactorIndex], &fact_quot_r, &fact_quot_i);
+				zr = zr - fact_quot_r;
+				zi = zi - fact_quot_i;
 		
 				for(int root_ndx = 0; root_ndx < sizeof newton_root_r / sizeof newton_root_r[0]; ++root_ndx)
 				{
-					if(complex_diff_squared(zr, zi, newton_root_r[root_ndx], newton_root_i[root_ndx]) < 0.01)
+					if(complex_diff_squared(zr, zi, newton_root_r[root_ndx], newton_root_i[root_ndx]) < 0.001)
 					{
 						converged = true;
 						nRoot = root_ndx;						
@@ -738,6 +776,12 @@ void complex_divide( double r_num, double i_num, double r_den, double i_den, dou
 
 	*r_out = ((r_num * r_den) + (i_num * i_den)) / denom;
 	*i_out = ((i_num * r_den) - (r_num * i_den)) / denom;
+}
+
+void complex_multiply( double r1, double i1, double r2, double i2, double * r_out, double * i_out )
+{
+	*r_out = (r1 * r2) - (i1 * i2);
+	*i_out = (r1 * i2) + (i1 * r2);
 }
 
 double complex_diff_squared(double r1, double i1, double r2, double i2)
