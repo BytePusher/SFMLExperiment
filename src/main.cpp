@@ -41,7 +41,6 @@ void SetWindowTitle(std::string_view strTitle);
 
 bool fMandelJuliaConvergeColorBlack = true;
 bool fNewtonNotPerRoot = false;
-bool fNewtonFactor = true;
 
 enum class fractal_type {fractal_mandelbrot, fractal_julia, fractal_newton};
 
@@ -76,11 +75,10 @@ double newton_i_factor[] = {0.0, 0.5, 0.75, -0.75 };
   // std::complex<double> alpha(0.4,   0.5);
   //std::complex<double> alpha(1.1,    0.75);
 
+int  nMandelbrotIndex = 0;
 int  nJuliaInitIndex = 0;
 int  nNewtonIndex = 0;
 int  nNewtonFactorIndex = 0;
-bool fBurningShipMandelbrot = false;
-
 
 sf::RenderWindow * pWindow = NULL;
 
@@ -223,7 +221,11 @@ int main()
 				{
 					if(cur_fractal_type == fractal_type::fractal_mandelbrot)
 					{
-						fBurningShipMandelbrot = !fBurningShipMandelbrot;						
+						nMandelbrotIndex++;
+						if(nMandelbrotIndex > 2 )
+						{
+							nMandelbrotIndex = 0;
+						}
 					}
 					else
 					{
@@ -375,10 +377,14 @@ void update_pixmap_mandelbrot(double x_start, double x_stop, double y_start, dou
 			buffer[offset + 2] = 128;
 			while (i < 50)
             {
-				if(fBurningShipMandelbrot)
+				if( nMandelbrotIndex  == 1)
 				{
 					zr = fabs(zr);
 					zi = fabs(zi);
+				}
+				else if(nMandelbrotIndex == 2)
+				{
+					zi = -zi;					
 				}
 
 				double new_zr = ((zr * zr) - (zi*zi)) + cr;
@@ -781,9 +787,13 @@ void SetWindowTitle(std::string_view strTitle)
 void set_mandelbrot_title()
 {
 	std::string strTitle = "Mandelbrot Set [ ";
-	if( fBurningShipMandelbrot )
+	if( nMandelbrotIndex == 1 )
 	{
 		strTitle += "Burning Ship";
+	}
+	else if( nMandelbrotIndex == 2 )
+	{
+		strTitle += "Complex Conjugate";
 	}
 	else
 	{
