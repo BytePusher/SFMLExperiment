@@ -33,9 +33,13 @@ void update_pixmap_newton(double x_start, double x_stop, double y_start, double 
                    uint8_t* buffer, uint32_t bytes_per_row, double* x_l,
                    double* y_l);				   
 
+void set_mandelbrot_title();
+void set_julia_title();
+void set_newton_title();
+
 void SetWindowTitle(std::string_view strTitle);
 
-bool fMandelJuliaConvergeColorBlack = false;
+bool fMandelJuliaConvergeColorBlack = true;
 bool fNewtonNotPerRoot = false;
 bool fNewtonFactor = true;
 
@@ -54,8 +58,8 @@ fractal_type  cur_fractal_type = fractal_type::fractal_mandelbrot;
 double julia_cr_init[] = {-0.70176, -0.8,   0.285, -0.12256, -0.4, -1.476, -0.03051, -0.2667, -0.40193, -0.57976, -0.38506};
 double julia_ci_init[] = {-0.3842,   0.156, 0.01,   0.74486,  0.6,  0.0,   -0.65586, -0.65024, 0.67769, -0.61587, -0.6385};
  
-double newton_r_factor[] = {1.0, 0.4, 1.1  };
-double newton_i_factor[] = {0.0, 0.5, 0.75 };
+double newton_r_factor[] = {1.0, 0.4, 1.1,   1.1  };
+double newton_i_factor[] = {0.0, 0.5, 0.75, -0.75 };
 
 
   // std::complex<double> alpha( 1.0,  0.0);
@@ -317,19 +321,19 @@ void update_pixmap(double x_start, double x_stop, double y_start, double y_stop,
 	{
 		update_pixmap_julia(x_start, x_stop, y_start, y_stop,
                             buffer, bytes_per_row, x_l, y_l); 
-		SetWindowTitle("Julia Set");
+		set_julia_title();							
 	}
    else if(cur_fractal_type == fractal_type::fractal_mandelbrot)
    {
 		update_pixmap_mandelbrot(x_start, x_stop, y_start, y_stop,
                                  buffer, bytes_per_row, x_l, y_l); 
-		SetWindowTitle("MandelBrot Set");								 
+		set_mandelbrot_title();															 
 	}
 	else if(cur_fractal_type == fractal_type::fractal_newton)
 	{
 		update_pixmap_newton(x_start, x_stop, y_start, y_stop,
                                  buffer, bytes_per_row, x_l, y_l); 							
-		SetWindowTitle("Newton");								 
+		set_newton_title();															 								 
 	}
 
 }
@@ -382,6 +386,7 @@ void update_pixmap_mandelbrot(double x_start, double x_stop, double y_start, dou
 				zr = new_zr;
 				zi = new_zi;
 				mg =(zr * zr) + (zi * zi);
+			
 				if (mg > 4.0)
 				{
 					int k = (int)(mg * 100);
@@ -772,6 +777,89 @@ void SetWindowTitle(std::string_view strTitle)
 		pWindow->setTitle(str.c_str());
 	}
 }
+
+void set_mandelbrot_title()
+{
+	std::string strTitle = "Mandelbrot Set [ ";
+	if( fBurningShipMandelbrot )
+	{
+		strTitle += "Burning Ship";
+	}
+	else
+	{
+		strTitle += "Standard";
+	}
+	strTitle += " ]";
+	SetWindowTitle(strTitle);
+}
+
+void set_julia_title()
+{
+	std::string strTitle = "Julia Set [ c = ";
+
+	if(julia_cr_init[nJuliaInitIndex] == 0.0 && julia_ci_init[nJuliaInitIndex] == 0.0)
+	{
+		strTitle += "0.0";
+	}
+	else
+	{
+		if(julia_cr_init[nJuliaInitIndex] != 0.0)
+		{
+			strTitle += std::to_string(julia_cr_init[nJuliaInitIndex]);
+		}
+		if(julia_ci_init[nJuliaInitIndex] != 0.0)
+		{
+			if(julia_cr_init[nJuliaInitIndex] != 0.0 && julia_ci_init[nJuliaInitIndex] > 0.0)
+			{
+				strTitle += " + ";
+			}
+
+			if(julia_ci_init[nJuliaInitIndex] < 0.0)
+			{
+				strTitle += " - ";
+			}
+			strTitle += std::to_string(std::abs(julia_ci_init[nJuliaInitIndex]));
+			strTitle += "i";
+		}
+	}		
+	strTitle += " ]";
+	SetWindowTitle(strTitle);
+}
+
+void set_newton_title()
+{
+	std::string strTitle = "Newton [ ";
+
+	if(newton_r_factor[nNewtonFactorIndex] == 1.0 && newton_i_factor[nNewtonFactorIndex] == 0.0)
+	{
+		strTitle += "Standard (alpha = 1)";
+	}
+	else
+	{
+		strTitle += "alpha = ";
+		if(newton_r_factor[nNewtonFactorIndex] != 0.0)
+		{
+			strTitle += std::to_string(newton_r_factor[nNewtonFactorIndex]);
+		}
+		if(newton_i_factor[nNewtonFactorIndex] != 0.0)
+		{
+			if(newton_r_factor[nNewtonFactorIndex] != 0.0 && newton_i_factor[nNewtonFactorIndex] > 0.0)
+			{
+				strTitle += " + ";
+			}
+
+			if(newton_i_factor[nNewtonFactorIndex] < 0.0)
+			{
+				strTitle += " - ";
+			}
+			strTitle += std::to_string(std::abs(newton_i_factor[nNewtonFactorIndex]));
+			strTitle += "i";
+		}
+	}		
+	strTitle += " ]";
+	SetWindowTitle(strTitle);
+}
+
 
 void complex_squared( double r_in, double i_in, double * r_out, double * i_out )
 {
