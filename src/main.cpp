@@ -55,10 +55,10 @@ fractal_type  cur_fractal_type = fractal_type::fractal_mandelbrot;
 // Index 5: c = -1.476 Produces a classic dendrite fractal.
 
 double julia_cr_init[] = {-0.70176, -0.8,   0.285, -0.12256, -0.4, -1.476, -0.03051, -0.2667, -0.40193, -0.57976, -0.38506};
-double julia_ci_init[] = {-0.3842,   0.156, 0.01,   0.74486,  0.6,  0.0,   -0.65586, -0.65024, 0.67769, -0.61587, -0.6385};
+double julia_ci_init[] = {-0.3842,   0.156, 0.01,   0.74486,  0.6,  0.0,   -0.65586, -0.65024, 0.67769, -0.61587, -0.6385 };
  
-double newton_r_factor[] = {1.0, 0.4, 1.1,   1.1  };
-double newton_i_factor[] = {0.0, 0.5, 0.75, -0.75 };
+double newton_r_factor[] = {1.0, 0.4, 1.1,   1.1 };
+double newton_i_factor[] = {0.0, 0.5, 0.75, -0.75};
 
 
   // std::complex<double> alpha( 1.0,  0.0);
@@ -214,6 +214,8 @@ int main()
 					else
 					{
 						cur_fractal_type = fractal_type::fractal_julia;
+						set_initial_values(&x_start, &x_stop, &y_start, &y_stop);				
+
 					}
  					redraw = 1;					
 				}
@@ -222,7 +224,7 @@ int main()
 					if(cur_fractal_type == fractal_type::fractal_mandelbrot)
 					{
 						nMandelbrotIndex++;
-						if(nMandelbrotIndex > 2 )
+						if(nMandelbrotIndex > 3 )
 						{
 							nMandelbrotIndex = 0;
 						}
@@ -230,6 +232,7 @@ int main()
 					else
 					{
 						cur_fractal_type = fractal_type::fractal_mandelbrot;
+						set_initial_values(&x_start, &x_stop, &y_start, &y_stop);						
 					}
  					redraw = 1;					
 				}
@@ -246,6 +249,7 @@ int main()
 					else
 					{
 						cur_fractal_type = fractal_type::fractal_newton;
+						set_initial_values(&x_start, &x_stop, &y_start, &y_stop);												
 					}
  					redraw = 1;					
 				}
@@ -287,6 +291,7 @@ int main()
 	free(x_l);
 	free(y_l);
 }
+
 void set_initial_values(double * px_start, double * px_stop, double * py_start, double * py_stop)
 {
 	if(cur_fractal_type == fractal_type::fractal_julia)
@@ -386,11 +391,16 @@ void update_pixmap_mandelbrot(double x_start, double x_stop, double y_start, dou
 				{
 					zi = -zi;					
 				}
+				else if(nMandelbrotIndex  == 3)
+				{
+					zr = fabs(zr);
+				}
 
 				double new_zr = ((zr * zr) - (zi*zi)) + cr;
 				double new_zi = (2.0 * zr * zi) + ci;
 				zr = new_zr;
 				zi = new_zi;
+
 				mg =(zr * zr) + (zi * zi);
 			
 				if (mg > 4.0)
@@ -525,12 +535,9 @@ void update_pixmap_julia(double x_start, double x_stop, double y_start, double y
 						buffer[offset + 1] = (k * i * 2) % 255;
 						buffer[offset + 2] = (k * i * 2) % 255;
 					}       
-
-
 				}
     			i++;                
             }                
-
 		}
 	}
 }
@@ -555,7 +562,7 @@ void update_pixmap_newton(double x_start, double x_stop, double y_start, double 
 	}
 	double half_root_three = 0.5 * sqrt(3.0);
 
-	//Roots of z^3 - 1
+	// Roots of z^3 - 1
 	double newton_root_r[] = {1.0, -0.5,            -0.5 };
 	double newton_root_i[] = {0.0, half_root_three, -half_root_three };
 
@@ -596,9 +603,10 @@ void update_pixmap_newton(double x_start, double x_stop, double y_start, double 
 				complex_squared(zr, zi, &squared_r, &squared_i);
 				complex_divide(cubed_r - 1.0, cubed_i, 3.0 * squared_r, 3.0 * squared_i, &quot_r, &quot_i);
 				complex_multiply(quot_r, quot_i, newton_r_factor[nNewtonFactorIndex], newton_i_factor[nNewtonFactorIndex], &fact_quot_r, &fact_quot_i);
+
 				zr = zr - fact_quot_r;
 				zi = zi - fact_quot_i;
-		
+
 				for(int root_ndx = 0; root_ndx < sizeof newton_root_r / sizeof newton_root_r[0]; ++root_ndx)
 				{
 					if(complex_diff_squared(zr, zi, newton_root_r[root_ndx], newton_root_i[root_ndx]) < 0.001)
@@ -794,6 +802,10 @@ void set_mandelbrot_title()
 	else if( nMandelbrotIndex == 2 )
 	{
 		strTitle += "Complex Conjugate";
+	}
+	else if( nMandelbrotIndex == 3 )
+	{
+		strTitle += "Burning Ship Mandelbar";
 	}
 	else
 	{
